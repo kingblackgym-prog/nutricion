@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kingblack Nutrición</title>
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* Estilo Kingblack: Outfit, carbón + amarillo, cards redondeadas, franja inferior con slogan */
+:root{
+  --bg:#fcfcfc; --surface:#ffffff; --chip:#f4f4f4; --line:#e8e8e8;
+  --ink:#2c2828; --ink2:#5b5656; --muted:#a3a3a3;
+  --yellow:#f4c93c;
+  --ok:#2e8f52; --warn:#c98a0a; --bad:#cf3b3b;
+  --font:'Outfit','Helvetica Neue',Arial,sans-serif;
+  --shadow:0 2px 6px rgba(44,40,40,.04),0 12px 32px rgba(44,40,40,.06);
+  --radius:24px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45}
+h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.02em}
+.num{font-variant-numeric:tabular-nums}
+.wordmark{font-weight:900;font-style:italic;letter-spacing:.01em;text-transform:uppercase}
+.wordmark sup{font-size:.4em;font-style:normal;font-weight:600;vertical-align:top;margin-left:1px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.pill{display:inline-block;background:var(--ink);color:#fff;border-radius:999px;padding:7px 22px;font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:.01em}
+
+/* ---------- app ---------- */
+header.top{background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:14px 28px;position:sticky;top:0;z-index:5}
+header.top .wordmark{font-size:24px}
+header.top .eyebrow{font-size:11px}
+.actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-weight:700;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 18px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button.primary{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+button.primary:hover{border-color:var(--ink)}
+button:disabled{opacity:.55;cursor:progress}
+
+main{display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:24px;padding:24px;max-width:1500px;margin:0 auto;align-items:start}
+.form{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.card h2{font-size:18px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.card h2 .n{width:26px;height:26px;border-radius:50%;background:var(--yellow);font-size:13px;font-weight:800;display:grid;place-items:center;flex:none;letter-spacing:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+input,select,textarea{font:inherit;font-size:15px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--chip);border:1.5px solid transparent;border-radius:12px;padding:9px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink);background:var(--surface)}
+textarea{resize:vertical;min-height:80px}
+.imc-chip{grid-column:1/-1;display:flex;align-items:center;gap:12px;background:var(--chip);border-radius:16px;padding:10px 14px}
+.imc-chip .eyebrow{letter-spacing:.18em}
+.imc-chip b{font-size:26px;font-weight:800}
+.imc-chip .tag{margin-left:auto;font-weight:700;font-size:12px;border-radius:999px;padding:4px 12px;background:var(--line)}
+
+.plate-ctrl{display:flex;flex-direction:column;gap:12px}
+.cat{display:grid;grid-template-columns:12px 1fr 64px;gap:4px 10px;align-items:center}
+.cat .sw{width:12px;height:12px;border-radius:50%}
+.cat .name{font-weight:700;font-size:14px}
+.cat input[type=number]{padding:5px 8px;text-align:right}
+.cat input[type=range]{grid-column:2/4;padding:0;background:none;border:0;accent-color:var(--ink)}
+.cat input.foods{grid-column:2/4;font-size:13px;padding:7px 10px}
+.total{font-size:12px;color:var(--muted);margin-top:10px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tabs button{flex:1;padding:8px}
+.tabs button[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:#fff;font-style:italic;font-weight:900;text-transform:uppercase}
+
+.checks{display:flex;flex-direction:column;gap:8px}
+.checks label{flex-direction:row;align-items:flex-start;gap:10px;font-size:14px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink);cursor:pointer}
+.checks input{width:auto;margin-top:3px;accent-color:var(--ink)}
+label.inc{flex-direction:row;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:14px;cursor:pointer}
+label.inc input{width:auto;accent-color:var(--ink)}
+.model{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.model h3{font-size:15px;font-style:italic;font-weight:900;text-transform:uppercase;margin-bottom:8px}
+.model .grp{margin-bottom:10px}
+.model .grp .t{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
+.model .grp .t .sw{width:10px;height:10px;border-radius:50%}
+.model .grp p{margin:3px 0 0 18px;font-size:12.5px;color:var(--ink2);line-height:1.45}
+.hint-s{font-size:12px;color:var(--muted);margin-top:6px}
+.plate-tools{display:flex;gap:6px;margin:-6px 0 14px}
+.plate-tools button{padding:6px 12px;font-size:12px}
+.foods-chips{grid-column:2/4;display:flex;flex-wrap:wrap;gap:5px}
+.food{padding:3px 10px;font-size:12px;font-weight:600;border-width:1px;background:var(--chip);border-color:transparent}
+.food[aria-pressed=true]{background:var(--yellow);border-color:var(--yellow)}
+
+.preview{position:sticky;top:88px;min-width:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:10px}
+.preview .eyebrow{font-size:11px}
+.pages{display:flex;flex-direction:column;gap:18px;transform-origin:top center}
+.sheet-wrap{overflow:hidden;border-radius:6px;box-shadow:0 4px 28px rgba(44,40,40,.14)}
+
+/* ---------- hoja A4 del informe (lo que va al PDF) ---------- */
+.page{width:794px;height:1123px;background:#fcfcfc;color:#2c2828;font-family:var(--font);display:flex;flex-direction:column}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:36px 48px 0}
+.ph .wordmark{font-size:22px}
+.ph .eyebrow{font-size:10px}
+.hero{text-align:center;padding:26px 48px 8px}
+.hero .eyebrow{display:inline-block;color:#2c2828;font-size:11px;padding-bottom:8px;border-bottom:1px solid #d8d8d8}
+.hero h1{font-size:38px;margin-top:12px;line-height:1.1}
+.page .body{padding:18px 48px 24px;display:flex;flex-direction:column;gap:16px;flex:1}
+.pcard{background:#fff;border:1px solid #e8e8e8;border-radius:22px;padding:20px 24px}
+.pcard .pill{font-size:15px;padding:6px 20px}
+.pcard .head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.pcard .head .chip{margin-left:auto}
+.chip{display:inline-block;background:#f4f4f4;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat .big{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.stat .big small{font-size:15px;font-weight:600;color:#a3a3a3;letter-spacing:0;margin-left:5px}
+.stat .eyebrow{font-size:10px;margin-top:6px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #e8e8e8}
+.imc-row{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:center}
+.imc-row .big{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.imc-row .lbl{font-weight:800;font-style:italic;text-transform:uppercase;margin-top:6px;font-size:14px}
+.scale{position:relative;padding-top:24px}
+.scale .bar{display:flex;height:12px;gap:3px}
+.scale .bar div{border-radius:999px}
+.scale .ticks{display:flex;justify-content:space-between;font-size:10px;color:#a3a3a3;margin-top:6px;font-weight:600}
+.scale .names{display:flex;font-size:10px;color:#5b5656;margin-top:2px;font-weight:600}
+.scale .mark{position:absolute;top:0;transform:translateX(-50%);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center}
+.scale .mark::after{content:'';width:3px;height:22px;background:#2c2828;border-radius:2px;margin-top:1px}
+.plates{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.plate{display:flex;flex-direction:column;align-items:center}
+.plate .head{align-self:stretch}
+.legend{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px;align-self:stretch}
+.legend li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:start;font-size:13px;font-weight:600}
+.legend .sw{width:12px;height:12px;border-radius:50%;margin-top:3px}
+.legend .pc{font-weight:800}
+.legend .fd{grid-column:2/4;color:#a3a3a3;font-weight:500;font-size:12px;margin-top:-5px}
+.textblock{white-space:pre-wrap;font-size:15px;font-weight:500;line-height:1.6}
+.textblock.empty{color:#a3a3a3}
+.ticklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.ticklist li{display:grid;grid-template-columns:22px 1fr;gap:12px;font-size:14px;font-weight:600;line-height:1.4}
+.tick{width:22px;height:22px;border-radius:50%;background:#f4c93c;display:grid;place-items:center}
+.tick svg{width:11px;height:11px}
+.guia{display:flex;flex-direction:column;gap:14px}
+.guia.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.guia .pcard{padding:16px 20px}
+.guia.two .pcard{padding:13px 16px}
+.gh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.gh .sw{width:12px;height:12px;border-radius:50%;flex:none}
+.gh b{font-size:16px;font-weight:800}
+.guia.two .gh b{font-size:14px}
+.why{font-size:11.5px;color:#a3a3a3;font-weight:600;margin-bottom:8px;font-style:italic}
+.guia p{margin:0;font-size:13px;font-weight:500;line-height:1.5;color:#5b5656}
+.guia.two p{font-size:11.5px}
+.ticklist.ej li{font-weight:500}
+.ticklist.ej b{font-weight:800}
+.opcionales{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.opcionales div{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:10px 14px;font-size:11.5px;font-weight:500;line-height:1.4;color:#5b5656}
+.opcionales b{display:block;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#2c2828;margin-bottom:2px}
+.band{background:#2c2828;color:#fff;display:flex;align-items:center;gap:22px;padding:0 48px;height:112px;flex:none}
+.band img{width:50px;height:50px}
+.band .slogan{white-space:nowrap;font-size:24px;font-weight:800;font-style:italic;letter-spacing:-.02em}
+.band .slogan em{color:#f4c93c}
+.band .site{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:.24em;color:#bdbdbd}
+.band .pg{font-size:38px;font-weight:400;margin-left:22px}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;max-width:calc(100% - 32px)}
+.toast.show{opacity:1}
+.toast.err{background:var(--bad)}
+
+@media (max-width:900px){
+  main{grid-template-columns:minmax(0,1fr);padding:16px}
+  .preview{position:static}
+  header.top{flex-wrap:wrap;padding:12px 16px}
+  .actions{margin-left:0;width:100%}
+  .actions button{flex:1}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="wordmark">Kingblack<sup>®</sup></span>
+  <span class="eyebrow">Asesoramiento nutricional</span>
+  <div class="actions">
+    <button id="btnNuevo">Nuevo informe</button>
+    <button class="primary" id="btnPdf">Descargar PDF (EVO)</button>
+  </div>
+</header>
+
+<main>
+  <section class="form" id="form">
+    <div class="card">
+      <h2><span class="n">1</span>Datos del cliente</h2>
+      <div class="grid">
+        <label>Nombre<input data-k="nombre" autocomplete="off"></label>
+        <label>Apellido<input data-k="apellido" autocomplete="off"></label>
+        <label>Edad<input data-k="edad" type="number" min="1" max="110" inputmode="numeric"></label>
+        <label>Fecha<input data-k="fecha" type="date"></label>
+        <label>Peso (kg)<input data-k="peso" type="number" min="20" max="300" step="0.1" inputmode="decimal"></label>
+        <label>Altura (cm)<input data-k="altura" type="number" min="100" max="230" inputmode="numeric"></label>
+        <div class="imc-chip"><span class="eyebrow">IMC</span><b class="num" id="imcVal">–</b><span class="tag" id="imcTag">Completá peso y altura</span></div>
+        <label>Objetivo<select data-k="objetivo">
+          <option>Descenso de peso</option><option>Mantenimiento</option><option>Aumento de masa muscular</option><option>Salud general</option>
+        </select></label>
+        <label>Profesional<input data-k="profesional" autocomplete="off"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">2</span>Platos: almuerzo y cena</h2>
+      <div class="tabs" role="tablist">
+        <button role="tab" data-meal="almuerzo" aria-selected="true">Almuerzo</button>
+        <button role="tab" data-meal="cena" aria-selected="false">Cena</button>
+      </div>
+      <div class="plate-tools"><button id="useModel">Usar % del modelo</button><button id="copyPlate" title="Copiar el plato del almuerzo a la cena">Copiar a cena</button></div>
+      <div class="plate-ctrl" id="plateCtrl"></div>
+      <div class="total" id="plateTotal"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">3</span>Ejemplos de desayuno y merienda</h2>
+      <textarea data-k="desayuno" rows="4" placeholder="Ej.: bowl de yogur natural con avena, frutillas, banana y semillas de chía + infusión"></textarea>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">4</span>Pautas generales</h2>
+      <div class="checks" id="pautas"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">5</span>Indicaciones personalizadas</h2>
+      <textarea data-k="notas" rows="5" placeholder="Indicaciones específicas para este cliente"></textarea>
+    </div>
+
+    <div class="card">
+      <h2><span class="n">6</span>Modelos de plato</h2>
+      <label class="inc"><input type="checkbox" id="incModelos">Incluir los modelos al final del PDF</label>
+      <label>Ejemplo de almuerzo o cena completo<textarea data-k="ejAC" rows="5"></textarea></label>
+      <label style="margin-top:10px">Ejemplo de merienda completa<textarea data-k="ejDM" rows="5"></textarea></label>
+      <div class="hint-s">Una línea por ítem. Lo que va antes de los dos puntos sale en negrita.</div>
+      <div id="modelos"></div>
+    </div>
+  </section>
+
+  <section class="preview">
+    <div class="eyebrow">Vista previa · así sale el PDF</div>
+    <div class="pages" id="pages">
+      <div class="sheet-wrap"><div class="page" id="page1">
+        <div class="ph"><span class="wordmark">Kingblack<sup>®</sup></span><span class="eyebrow" id="rTag1">Asesoramiento nutricional</span></div>
+        <div class="hero"><div class="eyebrow">Asesoramiento nutricional</div><h1 id="rNombre">—</h1></div>
+        <div class="body">
+          <div class="pcard">
+            <div class="head"><span class="pill">Datos</span><span class="chip" id="rFecha"></span></div>
+            <div class="stats">
+              <div class="stat"><div class="big num" id="rEdad">—</div><div class="eyebrow">Edad</div></div>
+              <div class="stat"><div class="big num" id="rPeso">—</div><div class="eyebrow">Peso</div></div>
+              <div class="stat"><div class="big num" id="rAltura">—</div><div class="eyebrow">Altura</div></div>
+            </div>
+            <div class="meta"><span class="chip" id="rObjetivo"></span><span class="chip" id="rProf"></span></div>
+          </div>
+          <div class="pcard">
+            <div class="head"><span class="pill">IMC</span><span class="chip">Índice de masa corporal</span></div>
+            <div class="imc-row">
+              <div><div class="big num" id="rImc">–</div><div class="lbl" id="rImcLbl"></div></div>
+              <div class="scale" id="rScale"></div>
+            </div>
+          </div>
+          <div class="plates">
+            <div class="pcard plate"><div class="head"><span class="pill">Almuerzo</span></div><canvas id="cvAlmuerzo"></canvas><ul class="legend" id="lgAlmuerzo"></ul></div>
+            <div class="pcard plate"><div class="head"><span class="pill">Cena</span></div><canvas id="cvCena"></canvas><ul class="legend" id="lgCena"></ul></div>
+          </div>
+        </div>
+        <div class="band"><img src="logo.png" alt=""><div class="slogan">Sentite bien, <em>sentite como en casa.</em></div><span class="site">KINGBLACK.COM.AR</span><span class="pg">1.</span></div>
+      </div></div>
+
+      <div class="sheet-wrap"><div class="page" id="page2">
+        <div class="ph"><span class="wordmark">Kingblack<sup>®</sup></span><span class="eyebrow" id="rTag2">Asesoramiento nutricional</span></div>
+        <div class="hero"><div class="eyebrow">Plan alimentario</div><h1>Hábitos para entrenar mejor</h1></div>
+        <div class="body">
+          <div class="pcard"><div class="head"><span class="pill">Desayuno y merienda</span></div><div class="textblock" id="rDesayuno"></div></div>
+          <div class="pcard"><div class="head"><span class="pill">Pautas</span></div><ul class="ticklist" id="rPautas"></ul></div>
+          <div class="pcard"><div class="head"><span class="pill">Indicaciones</span></div><div class="textblock" id="rNotas"></div></div>
+        </div>
+        <div class="band"><img src="logo.png" alt=""><div class="slogan">Sentite bien, <em>sentite como en casa.</em></div><span class="site">KINGBLACK.COM.AR</span><span class="pg">2.</span></div>
+      </div></div>
+
+      <div class="sheet-wrap model-page"><div class="page" id="page3">
+        <div class="ph"><span class="wordmark">Kingblack<sup>®</sup></span><span class="eyebrow">Modelo · Lic. Girgenti Nora Vanesa</span></div>
+        <div class="hero"><div class="eyebrow">Modelo de plato</div><h1>Almuerzos y cenas</h1></div>
+        <div class="body"><div class="guia" id="rGuiaAC"></div>
+          <div class="pcard"><div class="head"><span class="pill">Ejemplo</span><span class="chip">Almuerzo o cena completo</span></div><ul class="ticklist ej" id="rEjAC"></ul></div></div>
+        <div class="band"><img src="logo.png" alt=""><div class="slogan">Sentite bien, <em>sentite como en casa.</em></div><span class="site">KINGBLACK.COM.AR</span><span class="pg">3.</span></div>
+      </div></div>
+
+      <div class="sheet-wrap model-page"><div class="page" id="page4">
+        <div class="ph"><span class="wordmark">Kingblack<sup>®</sup></span><span class="eyebrow">Modelo · Lic. Girgenti Nora Vanesa</span></div>
+        <div class="hero"><div class="eyebrow">Modelo de plato</div><h1>Desayunos y meriendas</h1></div>
+        <div class="body">
+          <div class="guia two" id="rGuiaDM"></div>
+          <div class="pcard"><div class="head"><span class="pill">Ejemplo</span><span class="chip">Merienda completa</span></div><ul class="ticklist ej" id="rEjDM"></ul></div>
+          <div class="opcionales" id="rOpcionales"></div>
+        </div>
+        <div class="band"><img src="logo.png" alt=""><div class="slogan">Sentite bien, <em>sentite como en casa.</em></div><span class="site">KINGBLACK.COM.AR</span><span class="pg">4.</span></div>
+      </div></div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const CATS = [
+  { k: 'veg', name: 'Vegetales y frutas', title: 'Fibra, vitaminas y minerales', color: '#2e8a4f', why: 'Brindan saciedad. Aportan agua, fibra, vitaminas y minerales.' },
+  { k: 'pro', name: 'Proteínas', title: 'Proteína animal / vegetal', color: '#3a6fd0', why: 'Ayudan a construir y reparar los tejidos.' },
+  { k: 'hid', name: 'Carbohidratos', title: 'Carbohidratos', color: '#c4861b', why: 'Aportan energía y brindan saciedad.' },
+  { k: 'gra', name: 'Grasas saludables', title: 'Grasas saludables', color: '#b04a9a', why: 'Importantes para el sistema nervioso y la salud cardiovascular.' },
+];
+// Modelos de la Lic. Girgenti Nora Vanesa (láminas "Almuerzos y cenas" y "Desayunos y meriendas").
+const MODELS = {
+  ac: {
+    title: 'Almuerzos y cenas', pct: { veg: 50, pro: 25, hid: 25, gra: 0 },
+    veg: ['Acelga', 'Achicoria', 'Alcaucil', 'Ajo', 'Berenjena', 'Brócoli', 'Cebolla', 'Coliflor', 'Chaucha', 'Espárragos', 'Pepino', 'Rabanitos', 'Remolacha', 'Repollo', 'Tomate', 'Zanahoria', 'Zapallitos', 'Zapallo', 'Lechuga', 'Zuchini'],
+    pro: ['Carne vacuna magra', 'Cerdo magro', 'Pollo', 'Pescado', 'Huevo', 'Queso fresco magro', 'Lentejas', 'Quinoa', 'Porotos', 'Garbanzos', 'Avena', 'Arvejas', 'Soja', 'Levadura nutricional'],
+    hid: ['Papa', 'Batata', 'Choclo', 'Arroz yamaní', 'Arroz integral', 'Avena', 'Trigo burgol', 'Trigo candeal', 'Trigo sarraceno', 'Quinoa', 'Garbanzos', 'Arvejas secas', 'Porotos', 'Polenta', 'Mijo', 'Pan', 'Pastas', 'Fajitas', 'Tartas', 'Empanadas'],
+    gra: ['AOVE (aceite de oliva extra virgen)', 'Palta', 'Aceituna', 'Semillas molidas', 'Nueces', 'Maní', 'Castañas de cajú', 'Caballa', 'Sardina', 'Aceite de girasol alto oleico', 'Aceite de coco'],
+  },
+  dm: {
+    title: 'Desayunos y meriendas',
+    veg: ['Pepino', 'Tomate', 'Remolacha', 'Zanahoria', 'Frutilla', 'Limón', 'Melón', 'Pomelo', 'Sandía', 'Ananá', 'Cereza', 'Ciruela', 'Durazno', 'Mandarina', 'Mango', 'Manzana', 'Membrillo', 'Moras', 'Naranja', 'Pera', 'Uva', 'Banana'],
+    pro: ['Huevo', 'Yogur natural', 'Queso fresco magro', 'Ricota', 'Tofu', 'Untables vegetales', 'Germen de trigo', 'Avena', 'Quinoa', 'Levadura nutricional'],
+    hid: ['Quinoa', 'Avena', 'Harina de arroz', 'Harina integral', 'Harina de algarroba', 'Harina de garbanzo', 'Harina de avena', 'Harina de almendras', 'Pan integral', 'Galletas de arroz', 'Dátiles', 'Higos secos', 'Uvas pasa', 'Batata', 'Muesli / granola', 'Quinoa pop'],
+    gra: ['Palta', 'Aceituna', 'Semillas de chía', 'Semillas de lino', 'Sésamo', 'Coco', 'Semillas de girasol', 'Semillas de calabaza', 'Nueces', 'Maní', 'Castañas de cajú', 'Almendras', 'Chocolate amargo'],
+    opcionales: [['Infusiones', 'café, té, mate cocido / cebado'], ['Endulzantes', 'miel, azúcar mascabo, azúcar de coco, stevia en hojas, dátiles'], ['Especias', 'canela, extracto de vainilla, jengibre, cúrcuma, anís, cardamomo']],
+  },
+};
+const MEALS = { almuerzo: { name: 'Almuerzo', model: 'ac' }, cena: { name: 'Cena', model: 'ac' } };
+const EJEMPLOS = {
+  ejAC: 'Vegetales (½ plato): ensalada de lechuga, tomate y zanahoria + zapallitos al horno\n'
+    + 'Proteína (¼ plato): 1 pechuga de pollo a la plancha o 1 filet de merluza al horno\n'
+    + 'Carbohidratos (¼ plato): ½ taza de arroz integral o 1 papa mediana al horno\n'
+    + 'Grasas saludables: 1 cda. de aceite de oliva para condimentar\n'
+    + 'Bebida y postre: agua + 1 fruta fresca',
+  ejDM: 'Fruta: frutillas y ½ banana en rodajas\n'
+    + 'Proteína: 1 pote de yogur natural\n'
+    + 'Carbohidratos: 3 cdas. de avena o granola\n'
+    + 'Grasas saludables: 1 cda. de semillas de chía y nueces picadas\n'
+    + 'Opcional: infusión (café, té o mate) + canela a gusto',
+};
+const PAUTAS = [
+  'Incorporar vegetales en las dos comidas principales.',
+  'Al menos una vez por día, vegetales crudos.',
+  'Los vegetales se condimentan con 1 cda. sopera de aceite crudo (oliva, canola, girasol o maíz).',
+  'El consumo de sal debe ser moderado.',
+  'Carnes vacunas magras (peceto, cuadril, lomo, nalga, cuadrada, paleta, picada magra).',
+  'Incorporar pescado al menos una vez por semana.',
+  'Opciones de postres para almuerzo y cena: 1 fruta fresca, compotera de ensalada de fruta natural, fruta asada, gelatina light con fruta.',
+  'Formas de cocción: horno, parrilla, grill, cacerola, hervido, vapor, sartén con teflón. Evitar frituras y salteados.',
+  'Agua potable 2 L por día (además de las infusiones).',
+  'Evitar el consumo de golosinas y azúcar.',
+  'Evitar el consumo de mantecas y margarinas.',
+  'Evitar el consumo de fiambres y embutidos.',
+  'Realizar actividad física al menos 3 veces por semana.',
+];
+const IMC_CATS = [
+  { max: 18.5, name: 'Bajo peso', color: '#c98a0a' },
+  { max: 25, name: 'Peso normal', color: '#2e8f52' },
+  { max: 30, name: 'Sobrepeso', color: '#c98a0a' },
+  { max: 35, name: 'Obesidad grado I', color: '#cf3b3b' },
+  { max: 40, name: 'Obesidad grado II', color: '#a82525' },
+  { max: Infinity, name: 'Obesidad grado III', color: '#7d1a1a' },
+];
+const TICK = '<span class="tick"><svg viewBox="0 0 12 12"><path d="M2.5 6.3l2.3 2.2 4.7-5" fill="none" stroke="#2c2828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+
+const today = () => new Date().toISOString().slice(0, 10);
+function blankPlate(model) { return { ...MODELS[model].pct, f_veg: '', f_pro: '', f_hid: '', f_gra: '' }; }
+function blank() {
+  return { nombre: '', apellido: '', edad: '', fecha: today(), peso: '', altura: '', objetivo: 'Descenso de peso', profesional: 'Lic. Girgenti Nora Vanesa',
+    desayuno: '', notas: '', modelos: true, pautas: PAUTAS.map(() => true), almuerzo: blankPlate('ac'), cena: blankPlate('ac'), ...EJEMPLOS };
+}
+
+const KEY = 'kb-nutricion-borrador';
+let S;
+try { S = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY) || 'null') || {}); } catch { S = blank(); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+let meal = 'almuerzo';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- IMC ---------- */
+function imc() {
+  const p = parseFloat(S.peso), a = parseFloat(S.altura) / 100;
+  if (!(p > 0 && a > 0)) return null;
+  const v = p / (a * a);
+  return { v, cat: IMC_CATS.find(c => v < c.max) };
+}
+
+/* ---------- formulario ---------- */
+function bindFields() {
+  document.querySelectorAll('[data-k]').forEach(el => {
+    el.value = S[el.dataset.k] ?? '';
+    el.addEventListener('input', () => { S[el.dataset.k] = el.value; save(); render(); });
+  });
+  $('pautas').innerHTML = PAUTAS.map((p, i) => `<label><input type="checkbox" data-i="${i}" ${S.pautas[i] ? 'checked' : ''}>${esc(p)}</label>`).join('');
+  $('pautas').addEventListener('change', e => { S.pautas[+e.target.dataset.i] = e.target.checked; save(); render(); });
+  $('incModelos').checked = S.modelos;
+  $('incModelos').addEventListener('change', e => { S.modelos = e.target.checked; save(); render(); });
+  $('modelos').innerHTML = Object.values(MODELS).map(m => `<div class="model"><h3>${m.title}</h3>` +
+    CATS.map(c => `<div class="grp"><div class="t"><span class="sw" style="background:${c.color}"></span>${c.title}</div><p>${esc(m[c.k].join(', '))}.</p></div>`).join('') +
+    (m.opcionales ? `<div class="grp"><div class="t">Opcionales</div>${m.opcionales.map(([t, v]) => `<p><b>${t}:</b> ${v}.</p>`).join('')}</div>` : '') + '</div>').join('');
+}
+
+const foodList = s => s.split(',').map(x => x.trim()).filter(Boolean);
+function chipsHTML(c) {
+  const sel = foodList(S[meal]['f_' + c.k]).map(x => x.toLowerCase());
+  return MODELS[MEALS[meal].model][c.k].map(f =>
+    `<button type="button" class="food" data-food="${esc(f)}" aria-pressed="${sel.includes(f.toLowerCase())}">${esc(f)}</button>`).join('');
+}
+function buildPlateCtrl() {
+  const P = S[meal];
+  $('plateCtrl').innerHTML = CATS.map(c => `
+    <div class="cat" data-c="${c.k}">
+      <span class="sw" style="background:${c.color}"></span>
+      <span class="name">${c.name}</span>
+      <input type="number" min="0" max="100" step="5" value="${P[c.k]}" aria-label="${c.name} %">
+      <input type="range" min="0" max="100" step="5" value="${P[c.k]}" aria-label="${c.name} %">
+      <div class="foods-chips">${chipsHTML(c)}</div>
+      <input class="foods" placeholder="Tocá los alimentos de arriba o escribí otros" value="${esc(P['f_' + c.k])}" aria-label="Alimentos de ${c.name}">
+    </div>`).join('');
+  document.querySelectorAll('.tabs [data-meal]').forEach(b => b.setAttribute('aria-selected', b.dataset.meal === meal));
+  $('copyPlate').hidden = meal !== 'almuerzo';
+  updateTotal();
+}
+function refreshChips(row) {
+  const c = CATS.find(x => x.k === row.dataset.c);
+  row.querySelector('.foods-chips').innerHTML = chipsHTML(c);
+}
+
+// Al mover una categoría, las demás se reparten el resto en proporción, así el plato siempre suma 100 %.
+function setPct(k, v) {
+  const P = S[meal];
+  v = Math.max(0, Math.min(100, Math.round(v / 5) * 5));
+  const others = CATS.map(c => c.k).filter(x => x !== k);
+  const rest = 100 - v, sum = others.reduce((a, x) => a + P[x], 0);
+  P[k] = v;
+  others.forEach(x => { P[x] = sum ? Math.round(P[x] * rest / sum / 5) * 5 : Math.round(rest / others.length / 5) * 5; });
+  const diff = 100 - CATS.reduce((a, c) => a + P[c.k], 0);
+  if (diff) { const big = others.reduce((a, x) => (P[x] > P[a] ? x : a), others[0]); P[big] = Math.max(0, P[big] + diff); }
+  document.querySelectorAll('#plateCtrl .cat').forEach(row => {
+    const val = P[row.dataset.c];
+    row.querySelector('input[type=number]').value = val;
+    row.querySelector('input[type=range]').value = val;
+  });
+  updateTotal(); save(); render();
+}
+function updateTotal() {
+  const P = S[meal];
+  $('plateTotal').textContent = `Total del plato: ${CATS.reduce((a, c) => a + P[c.k], 0)} %. Al mover una porción, las otras se ajustan solas.`;
+}
+
+$('plateCtrl').addEventListener('input', e => {
+  const row = e.target.closest('.cat'); if (!row) return;
+  if (e.target.classList.contains('foods')) { S[meal]['f_' + row.dataset.c] = e.target.value; refreshChips(row); save(); render(); return; }
+  if (e.target.type === 'range') setPct(row.dataset.c, +e.target.value);
+});
+// Tocar un alimento del modelo lo agrega o lo quita de la lista del grupo.
+$('plateCtrl').addEventListener('click', e => {
+  const chip = e.target.closest('.food'); if (!chip) return;
+  const row = chip.closest('.cat'), key = 'f_' + row.dataset.c, f = chip.dataset.food;
+  const list = foodList(S[meal][key]);
+  const i = list.findIndex(x => x.toLowerCase() === f.toLowerCase());
+  i >= 0 ? list.splice(i, 1) : list.push(f);
+  S[meal][key] = list.join(', ');
+  row.querySelector('input.foods').value = S[meal][key];
+  refreshChips(row); save(); render();
+});
+$('useModel').addEventListener('click', () => {
+  Object.assign(S[meal], MODELS[MEALS[meal].model].pct);
+  save(); buildPlateCtrl(); render(); toast('Porcentajes del modelo aplicados');
+});
+$('plateCtrl').addEventListener('change', e => {
+  const row = e.target.closest('.cat');
+  if (row && e.target.type === 'number') setPct(row.dataset.c, +e.target.value || 0);
+});
+document.querySelectorAll('.tabs [data-meal]').forEach(b => b.addEventListener('click', () => { meal = b.dataset.meal; buildPlateCtrl(); }));
+$('copyPlate').addEventListener('click', () => { S.cena = { ...S.almuerzo }; save(); render(); toast('Plato del almuerzo copiado a la cena'); });
+
+/* ---------- gráfico del plato (dona dibujada en canvas) ---------- */
+function drawPlate(cv, P, size = 230) {
+  const dpr = 2, k = size / 230;
+  cv.width = size * dpr; cv.height = size * dpr; cv.style.width = cv.style.height = size + 'px';
+  const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+  ctx.scale(k, k);
+  const cx = 115, cy = 115, R = 108, r = 54;
+  ctx.beginPath(); ctx.arc(cx, cy, R + 5, 0, Math.PI * 2); ctx.fillStyle = '#f4f4f4'; ctx.fill();
+  let a = -Math.PI / 2;
+  const segs = CATS.filter(c => P[c.k] > 0);
+  segs.forEach(c => {
+    const ang = P[c.k] / 100 * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, a, a + ang); ctx.closePath();
+    ctx.fillStyle = c.color; ctx.fill();
+    if (segs.length > 1) { ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke(); }
+    c._mid = a + ang / 2; a += ang;
+  });
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  segs.forEach(c => {
+    if (P[c.k] < 8) return;
+    const m = (R + r) / 2;
+    ctx.font = '800 17px Outfit, sans-serif'; ctx.fillStyle = '#ffffff';
+    ctx.fillText(P[c.k] + '%', cx + Math.cos(c._mid) * m, cy + Math.sin(c._mid) * m);
+  });
+  ctx.fillStyle = '#a3a3a3'; ctx.font = '600 10px Outfit, sans-serif';
+  ctx.fillText('P L A T O', cx, cy);
+}
+function legendHTML(P) {
+  return CATS.filter(c => P[c.k] > 0).map(c => `
+    <li><span class="sw" style="background:${c.color}"></span><span>${c.name}</span><span class="pc">${P[c.k]} %</span>
+    ${P['f_' + c.k] ? `<span class="fd">${esc(P['f_' + c.k])}</span>` : ''}</li>`).join('');
+}
+
+/* ---------- informe ---------- */
+function fmtFecha(f) { if (!f) return '–'; const [y, m, d] = f.split('-'); return `${d}/${m}/${y}`; }
+const big = (v, unit) => v ? `${esc(v)}<small>${unit}</small>` : '—';
+function render() {
+  const nom = [S.nombre, S.apellido].filter(Boolean).join(' ');
+  const tag = `Asesoramiento nutricional · ${(S.fecha || today()).slice(0, 4)}`;
+  $('rTag1').textContent = $('rTag2').textContent = tag;
+  $('rNombre').textContent = nom || 'Nombre y apellido';
+  $('rFecha').textContent = fmtFecha(S.fecha);
+  $('rEdad').innerHTML = big(S.edad, 'años');
+  $('rPeso').innerHTML = big(S.peso && String(S.peso).replace('.', ','), 'kg');
+  $('rAltura').innerHTML = big(S.altura, 'cm');
+  $('rObjetivo').textContent = 'Objetivo: ' + (S.objetivo || '—');
+  $('rProf').textContent = 'Profesional: ' + (S.profesional || '—');
+
+  const I = imc();
+  $('imcVal').textContent = I ? I.v.toFixed(1) : '–';
+  $('imcTag').textContent = I ? I.cat.name : 'Completá peso y altura';
+  $('imcTag').style.background = I ? I.cat.color : '';
+  $('imcTag').style.color = I ? '#fff' : '';
+  $('rImc').textContent = I ? I.v.toFixed(1).replace('.', ',') : '–';
+  $('rImcLbl').textContent = I ? I.cat.name : 'Sin datos';
+  $('rImcLbl').style.color = I ? I.cat.color : '#a3a3a3';
+  // escala de 15 a 40
+  const lo = 15, hi = 40, span = hi - lo, bounds = [lo, 18.5, 25, 30, 35, hi];
+  const bar = IMC_CATS.slice(0, 5).map((c, i) => `<div style="flex:${bounds[i + 1] - bounds[i]};background:${c.color}"></div>`).join('');
+  const pos = I ? Math.max(0, Math.min(100, (I.v - lo) / span * 100)) : null;
+  $('rScale').innerHTML = (I ? `<div class="mark" style="left:${pos}%">${I.v.toFixed(1).replace('.', ',')}</div>` : '') +
+    `<div class="bar">${bar}</div>
+     <div class="ticks">${bounds.map(b => `<span>${String(b).replace('.', ',')}</span>`).join('')}</div>
+     <div class="names">${['Bajo', 'Normal', 'Sobrepeso', 'Obesidad I', 'Obes. II+'].map((n, i) => `<span style="flex:${bounds[i + 1] - bounds[i]};text-align:center">${n}</span>`).join('')}</div>`;
+
+  drawPlate($('cvAlmuerzo'), S.almuerzo); $('lgAlmuerzo').innerHTML = legendHTML(S.almuerzo);
+  drawPlate($('cvCena'), S.cena); $('lgCena').innerHTML = legendHTML(S.cena);
+  const ejemplo = txt => txt.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.indexOf(':');
+    return `<li>${TICK}<span>${i > 0 ? `<b>${esc(l.slice(0, i + 1))}</b>${esc(l.slice(i + 1))}` : esc(l)}</span></li>`;
+  }).join('');
+  $('rEjAC').innerHTML = ejemplo(S.ejAC);
+  $('rEjDM').innerHTML = ejemplo(S.ejDM);
+  const guia = m => CATS.map(c => `<div class="pcard"><div class="gh"><span class="sw" style="background:${c.color}"></span><b>${c.title}</b></div><div class="why">${c.why}</div><p>${esc(m[c.k].join(', '))}.</p></div>`).join('');
+  $('rGuiaAC').innerHTML = guia(MODELS.ac);
+  $('rGuiaDM').innerHTML = guia(MODELS.dm);
+  $('rOpcionales').innerHTML = MODELS.dm.opcionales.map(([t, v]) => `<div><b>${t}</b>${v}</div>`).join('');
+  document.querySelectorAll('.model-page').forEach(el => { el.hidden = !S.modelos; });
+
+  const tb = (id, txt, ph) => { $(id).textContent = txt || ph; $(id).classList.toggle('empty', !txt); };
+  tb('rDesayuno', S.desayuno, 'Sin indicaciones cargadas.');
+  tb('rNotas', S.notas, 'Sin indicaciones adicionales.');
+  $('rPautas').innerHTML = PAUTAS.filter((_, i) => S.pautas[i]).map(p => `<li>${TICK}<span>${esc(p)}</span></li>`).join('');
+  fitPreview();
+}
+
+function fitPreview() {
+  const pages = $('pages'), avail = pages.parentElement.clientWidth;
+  const k = Math.min(1, avail / 794);
+  pages.style.transform = `scale(${k})`;
+  pages.style.marginBottom = `${-(1 - k) * pages.offsetHeight}px`;
+}
+window.addEventListener('resize', fitPreview);
+
+/* ---------- PDF ---------- */
+function fileName() {
+  const n = [S.apellido, S.nombre].filter(Boolean).join(' ').trim() || 'Cliente';
+  return `Nutricion - ${n} - ${S.fecha || today()}.pdf`;
+}
+async function buildPdf() {
+  await document.fonts.ready;
+  const pages = $('pages'), prev = pages.style.transform;
+  pages.style.transform = 'none';
+  try {
+    const pdf = new jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+    const ids = ['page1', 'page2', ...(S.modelos ? ['page3', 'page4'] : [])];
+    for (const [i, id] of ids.entries()) {
+      const canvas = await html2canvas($(id), { scale: 2, backgroundColor: '#fcfcfc', useCORS: true });
+      if (i) pdf.addPage();
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+    }
+    pdf.setProperties({ title: fileName().replace(/\.pdf$/, ''), author: 'Kingblack Gimnasio' });
+    return pdf;
+  } finally { pages.style.transform = prev; }
+}
+function check() {
+  if (!S.nombre.trim() || !S.apellido.trim()) { toast('Completá nombre y apellido', true); return false; }
+  return true;
+}
+async function busy(btn, fn) { btn.disabled = true; try { await fn(); } catch (e) { toast(e.message, true); } finally { btn.disabled = false; } }
+
+$('btnPdf').addEventListener('click', e => check() && busy(e.currentTarget, async () => {
+  (await buildPdf()).save(fileName());
+  toast('PDF descargado: subilo a la ficha del cliente en EVO');
+}));
+
+$('btnNuevo').addEventListener('click', () => {
+  if (!confirm('¿Empezar un informe nuevo? Se borran los datos cargados.')) return;
+  S = blank(); save(); meal = 'almuerzo';
+  document.querySelectorAll('[data-k]').forEach(el => { el.value = S[el.dataset.k] ?? ''; });
+  document.querySelectorAll('#pautas input').forEach(el => { el.checked = true; });
+  buildPlateCtrl(); render();
+});
+
+let tt;
+function toast(msg, err) {
+  const t = $('toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+bindFields(); buildPlateCtrl(); render();
+document.fonts.ready.then(render);
+</script>
+</body>
+</html>
